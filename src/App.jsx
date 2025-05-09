@@ -121,6 +121,7 @@ const App = () => {
 
   return (
     <>
+    <h1>MY NOTEBOOK</h1>
     <Modal
         title="Edit"
         open={isModalOpen}
