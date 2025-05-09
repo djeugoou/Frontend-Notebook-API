@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useState } from 'react';
 import axios from 'axios';
 import {
@@ -25,33 +25,6 @@ const formItemLayout = {
 
 //Table
 const { Column, ColumnGroup } = Table;
-const data = [
-  {
-    key: '1',
-    firstName: 'John',
-    lastName: 'Brown',
-    age: 32,
-    address: 'New York No. 1 Lake Park',
-    tags: ['nice', 'developer'],
-  },
-  {
-    key: '2',
-    firstName: 'Jim',
-    lastName: 'Green',
-    age: 42,
-    address: 'London No. 1 Lake Park',
-    tags: ['loser'],
-  },
-  {
-    key: '3',
-    firstName: 'Joe',
-    lastName: 'Black',
-    age: 32,
-    address: 'Sydney No. 1 Lake Park',
-    tags: ['cool', 'teacher'],
-  },
-];
-
 
 const App = () => {
 
@@ -60,21 +33,30 @@ const App = () => {
   const [form] = Form.useForm();
   const variant = Form.useWatch('variant', form);
 
+  //POST
   const handleSubmit=(values)=>{
   axios.post('http://localhost:8000/notes', values)
   .then((response) => {
     console.log(response.data);
-      // Handle data
   })
   .catch((error) => {
     console.log(error);
   })
   }
-  axios.get('http://localhost:8000/notes')
+
+  //Get request
+
+   axios.get('http://localhost:8000/notes')
   .then(function (response) {
     console.log(response.data);
+    setData(response.data) //this is what displays the user input on frontend
   })
 
+  //Delete Request
+  axios.delete('http://localhost:8000/notes{id}',)
+
+
+ 
   return (
     <>
     <Form 
@@ -131,38 +113,19 @@ const App = () => {
     //***************************Table+++++++ */
 
      <Table dataSource={data}>
-    <ColumnGroup title="Name">
-      <Column title="First Name" dataIndex="firstName" key="firstName" />
-      <Column title="Last Name" dataIndex="lastName" key="lastName" />
-    </ColumnGroup>
-    <Column title="Age" dataIndex="age" key="age" />
-    <Column title="Address" dataIndex="address" key="address" />
-    <Column
-      title="Tags"
-      dataIndex="tags"
-      key="tags"
-      render={tags => (
-        <>
-          {tags.map(tag => {
-            let color = tag.length > 5 ? 'geekblue' : 'green';
-            if (tag === 'loser') {
-              color = 'volcano';
-               }
-            return (
-              <Tag color={color} key={tag}>
-                {tag.toUpperCase()}
-              </Tag>
-            );
-          })}
-        </>
-      )}
-    />
+    
+    <Column title="Title" dataIndex="title" key="title" />
+    <Column title="Content" dataIndex="content" key="content" />
+    <Column title="Category" dataIndex="category" key="category" />
+    <Column title="Icon" dataIndex="icon" key="icon" />
+    <Column title="Due-Date" dataIndex="duedate" key="duedate" />
+   
     <Column
       title="Action"
       key="action"
       render={(_, record) => (
         <Space size="middle">
-          <a>Invite {record.lastName}</a>
+          <a>Edit{record.lastName}</a>
            <a>Delete</a>
         </Space>
       )}
@@ -170,9 +133,6 @@ const App = () => {
   </Table>
   </>
   
-    
-
-
     
   )}
 
