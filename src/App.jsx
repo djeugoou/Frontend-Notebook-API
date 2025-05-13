@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useState } from 'react';
 import axios from 'axios';
+import "./App.css";
 
 import {
   Button,
@@ -13,6 +14,7 @@ import {
   Modal, 
   Tag,
 } from 'antd';
+
 const { RangePicker } = DatePicker;
 const formItemLayout = {
   labelCol: {
@@ -25,9 +27,10 @@ const formItemLayout = {
   },
 };
 
-//Table
+
 const { Column, ColumnGroup } = Table;
 
+//The APP
 const App = () => {
   function SendGetRequest(url){
     axios.get(url)
@@ -35,6 +38,8 @@ const App = () => {
       setData(response.data)     
   })
   }
+
+  //Usestate hooks
   const [id,setId] =useState(0)
   const [isModalOpen, setIsModalopen] = useState(false)
   const [formData, setFormData] = useState({"title":"1", "content":"","category":"","icon":"","duedate":""})
@@ -46,6 +51,7 @@ const App = () => {
   const [updateRefreshTrigger,setupdateRefreshTrigger]=useState(false)
 
   console.log 
+
   //POST Request
  const handleSubmit=(values)=>{
     axios.post('http://localhost:8000/notes', values)
@@ -80,6 +86,8 @@ const App = () => {
     setIsModalopen(true)
     setId(id)
   }
+
+  //PUT request
   function sendUpdate(id, values) {
     axios.put('http://localhost:8000/notes/'+id, values)
     .then(res => {
@@ -91,6 +99,20 @@ const App = () => {
     });
 }
 
+const handleCancel=()=>{
+  setIsModalopen(false) //Closes the modal
+ }
+ const handleOk=()=>{
+  sendUpdate(id,formData)
+  setIsModalopen(false) //Closes the modal after the update request is sent
+  setupdateRefreshTrigger(!updateRefreshTrigger)
+ }
+  const handleInputChange = e => {
+    const { name, value } = e.target;
+    setFormData(formdata => ({ ...formdata, [name]: value }));
+  };
+
+  //DELETE REQUEST
   const handleDelete=(id)=>{
      axios.delete('http://localhost:8000/notes/'+id)
       .then(res => {
@@ -105,129 +127,103 @@ const App = () => {
   });
 }
  
- const handleCancel=()=>{
-  setIsModalopen(false)
- }
- const handleOk=()=>{
-  sendUpdate(id,formData)
-  setIsModalopen(false)
-  setupdateRefreshTrigger(!updateRefreshTrigger)
- }
-  const handleInputChange = e => {
-    const { name, value } = e.target;
-    setFormData(formdata => ({ ...formdata, [name]: value }));
-  };
-
+ 
 
   return (
     <>
-    <h1>MY NOTEBOOK</h1>
+  
+  <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-10 px-4">
+    <h1 className="text-5xl font-bold text-center text-indigo-700 mb-12 drop-shadow-sm">📝 My Notebook</h1>
+
+    {/* Create Form Section */}
+    <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl p-8 mb-12">
+      <h2 className="text-xl font-semibold text-gray-700 mb-6">Create a New Note</h2>
+      <Form onFinish={handleSubmit} form={form} layout="vertical">
+        <Form.Item label="Title" name="title" rules={[{ required: true }]}>
+          <Input className="rounded-lg px-4 py-2 border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-300" />
+        </Form.Item>
+        <Form.Item label="Content" name="content" rules={[{ required: true }]}>
+          <Input.TextArea className="rounded-lg px-4 py-2 border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-300" />
+        </Form.Item>
+        <Form.Item label="Category" name="category" rules={[{ required: true }]}>
+          <Mentions className="rounded-lg px-4 py-2 border border-gray-300 shadow-sm" />
+        </Form.Item>
+        <Form.Item label="Icon" name="icon" rules={[{ required: true }]}>
+          <Mentions className="rounded-lg px-4 py-2 border border-gray-300 shadow-sm" />
+        </Form.Item>
+        <Form.Item label="Due Date" name="duedate" rules={[{ required: true }]}>
+          <DatePicker className="w-full rounded-lg border-gray-300 shadow-sm px-4 py-2" />
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit" className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2 rounded-lg transition">
+            Save Note
+          </Button>
+        </Form.Item>
+      </Form>
+    </div>
+
+    {/* Table Section */}
+    <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl p-8">
+      <h2 className="text-xl font-semibold text-gray-700 mb-6">Your Notes</h2>
+      <Table dataSource={data} rowKey="id" bordered className="rounded-lg overflow-hidden">
+        <Column title="Title" dataIndex="title" key="title" />
+        <Column title="Content" dataIndex="content" key="content" />
+        <Column title="Category" dataIndex="category" key="category" />
+        <Column title="Icon" dataIndex="icon" key="icon" />
+        <Column title="Due-Date" dataIndex="duedate" key="duedate" />
+        <Column
+          title="Actions"
+          key="action"
+          render={(_, record) => (
+            <Space size="middle">
+              <Button
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded-lg"
+                onClick={() => openModal(record.id, record)}
+              >
+                Edit
+              </Button>
+              <Button
+                danger
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-lg"
+                onClick={() => handleDelete(record.id)}
+              >
+                Delete
+              </Button>
+            </Space>
+          )}
+        />
+      </Table>
+    </div>
+
+    {/* Modal Styling (inputs inside modal) */}
     <Modal
-        title="Edit"
-        open={isModalOpen}
-        okText='Save'
-        onOk={handleOk}
-        onCancel={handleCancel}
-      >
-        <Form
-            labelCol={{span:5}}
-            form={formEdit}
-        >
-          <Form.Item label="Title" rules={[{ required: true, message: 'Please input!' }]}>
-            <Input value={formData.title}  name='title' onChange={handleInputChange}/>
-           </Form.Item>
-           <Form.Item label="Content"  rules={[{ required: true, message: 'Please input!' }]}>
-              <Input  value={formData.content} name='content'onChange={handleInputChange}/>
-            </Form.Item>
-           <Form.Item label="Category" rules={[{ required: true, message: 'Please input!' }]}>
-              <Input   value={formData.category} name='category'onChange={handleInputChange}/>
-           </Form.Item>
-            <Form.Item label="Icon" rules={[{ required: true, message: 'Please input!' }]}>
-              <Input   value={formData.icon} name='icon'onChange={handleInputChange}/>
-            </Form.Item>
-            <Form.Item label="Due Date" rules={[{ required: true, message: 'Please input!' }]}>
-              <Input   value={formData.duedate} name='duedate'onChange={handleInputChange}/>
-            </Form.Item>
-        </Form>
-        
-    </Modal>
-    <Form 
-      title='Create New Node'
-      style={{ maxWidth: 600 }}
-      onFinish={handleSubmit}
-      form={form}
-      labelCol={{span:5}}
+      title="Edit Note"
+      open={isModalOpen}
+      okText="Save"
+      onOk={handleOk}
+      onCancel={handleCancel}
     >
-      <Form.Item label="Title" name="title" rules={[{ required: true, message: 'Please input!' }]}>
-        <Input />
-      </Form.Item>
+      <Form layout="vertical" form={formEdit}>
+        <Form.Item label="Title">
+          <Input className="rounded-lg px-4 py-2 border border-gray-300 shadow-sm" value={formData.title} name="title" onChange={handleInputChange} />
+        </Form.Item>
+        <Form.Item label="Content">
+          <Input className="rounded-lg px-4 py-2 border border-gray-300 shadow-sm" value={formData.content} name="content" onChange={handleInputChange} />
+        </Form.Item>
+        <Form.Item label="Category">
+          <Input className="rounded-lg px-4 py-2 border border-gray-300 shadow-sm" value={formData.category} name="category" onChange={handleInputChange} />
+        </Form.Item>
+        <Form.Item label="Icon">
+          <Input className="rounded-lg px-4 py-2 border border-gray-300 shadow-sm" value={formData.icon} name="icon" onChange={handleInputChange} />
+        </Form.Item>
+        <Form.Item label="Due Date">
+          <Input className="rounded-lg px-4 py-2 border border-gray-300 shadow-sm" value={formData.duedate} name="duedate" onChange={handleInputChange} />
+        </Form.Item>
+      </Form>
+    </Modal>
+  </div>
+;
 
-   
-      <Form.Item
-        label="Content"
-        name="content"
-        rules={[{ required: true, message: 'Please input!' }]}
-      >
-        <Input.TextArea />
-      </Form.Item>
-
-      <Form.Item
-        label="Category"
-        name="category"
-        rules={[{ required: true, message: 'Please input!' }]}
-      >
-        <Mentions />
-      </Form.Item>
-
-      <Form.Item
-        label="Icon"
-        name="icon"
-        rules={[{ required: true, message: 'Please input!' }]}
-      >
-        <Mentions />
-      </Form.Item>
-
-
-
-      <Form.Item
-        label="Due- Date"
-        name="duedate"
-        rules={[{ required: true, message: 'Please input!' }]}
-      >
-        <DatePicker />
-      </Form.Item>
-
-   
-      <Form.Item wrapperCol={{ offset: 6, span: 16 }}>
-        <Button type="primary" htmlType="submit">
-          Submit
-        </Button>
-      </Form.Item>
-    </Form>
-
-     <Table dataSource={data}>
-    
-    <Column title="Title" dataIndex="title" key="title" />
-    <Column title="Content" dataIndex="content" key="content" />
-    <Column title="Category" dataIndex="category" key="category" />
-    <Column title="Icon" dataIndex="icon" key="icon" />
-    <Column title="Due-Date" dataIndex="duedate" key="duedate" />
-   
-    <Column
-      title="Action"
-      key="action"
-      render={(_, record) =>(
-        <Space size="middle">
-           <Button type="primary" htmlType="submit" onClick={()=>openModal(record.id,record)}>
-          Edit
-        </Button>
-            <Button type="primary" htmlType="submit" onClick={()=>handleDelete(record.id)} >
-          Delete
-        </Button>
-        </Space>
-      )}
-    />
-  </Table>
   </>
   
   )
